@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CajaSabIA — Business Intelligence para Pymes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F0EBE3;--bg2:#EAE3DA;--bg3:#E3DBD0;
+  --accent:#E8521A;--accent2:#D44A14;--accent3:#F4A261;
+  --gold:#D4880A;--teal:#2A8C5C;--purple:#7C5CBF;--blue:#2E86C1;
+  --t1:#2C2418;--t2:#5C4A35;--t3:#9A8570;
+  --glass:rgba(232,82,26,0.08);--glassbrd:rgba(232,82,26,0.22);
+  --brd:rgba(44,36,24,0.10);
+}
+html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--t1);}
+a{color:var(--accent2);text-decoration:none;}
+.shell{display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:rgba(255,252,248,0.97);border-bottom:1px solid rgba(232,82,26,0.18);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:38px;height:38px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;letter-spacing:-1px;}
+.logo-text{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--t1);}
+.logo-sub{font-size:9px;color:var(--accent);letter-spacing:2.5px;text-transform:uppercase;margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:14px;}
+.live-dot{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--accent2);padding:5px 14px;border-radius:20px;border:1px solid rgba(232,82,26,0.3);background:rgba(232,82,26,0.08);}
+.dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.topbar-info{font-size:12px;color:var(--t3);}
+.av{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer;}
+
+/* LAYOUT */
+.body-layout{display:flex;flex:1;}
+.sidebar{width:220px;min-height:calc(100vh - 67px);background:rgba(236,229,220,0.95);border-right:1px solid rgba(232,82,26,0.12);padding:24px 0;position:sticky;top:67px;height:calc(100vh - 67px);overflow-y:auto;}
+.nav-sec{padding:0 16px;margin-bottom:24px;}
+.nav-lbl{font-size:9px;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:10px;padding:0 4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;font-size:13px;color:var(--t2);cursor:pointer;margin-bottom:2px;transition:all .15s;border:1px solid transparent;}
+.ni.active{background:var(--glass);color:var(--accent2);border-color:var(--glassbrd);}
+.ni:not(.active):hover{background:rgba(232,82,26,0.08);color:var(--t1);}
+.ni-bar{width:3px;height:14px;border-radius:2px;background:currentColor;opacity:.4;flex-shrink:0;}
+.ni.active .ni-bar{opacity:1;background:var(--accent);}
+.main{flex:1;padding:28px 32px;max-width:1200px;}
+
+/* PAGE HEADER */
+.page-hd{margin-bottom:24px;}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--t3);}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;margin-bottom:26px;background:rgba(220,210,198,0.5);border-radius:11px;padding:5px;border:1px solid rgba(232,82,26,0.15);width:fit-content;}
+.tab{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:var(--t3);transition:all .2s;white-space:nowrap;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab:not(.active):hover{color:var(--t1);background:rgba(232,82,26,0.08);}
+.pane{display:none;}
+.pane.active{display:block;}
+
+/* CARDS */
+.card{background:rgba(255,252,248,0.90);border:1px solid var(--brd);border-radius:14px;padding:20px;margin-bottom:16px;}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--t1);}
+.chip{padding:3px 11px;border-radius:20px;font-size:10px;font-weight:500;background:rgba(232,82,26,0.10);color:var(--accent2);border:1px solid rgba(232,82,26,0.20);}
+.chip-g{background:rgba(82,183,136,0.1);color:var(--teal);border-color:rgba(82,183,136,0.2);}
+.chip-b{background:rgba(79,195,247,0.1);color:var(--blue);border-color:rgba(79,195,247,0.2);}
+.chip-p{background:rgba(167,139,250,0.1);color:var(--purple);border-color:rgba(167,139,250,0.2);}
+
+/* KPI GRIDS */
+.kpis-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.kpis-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.kpi{background:rgba(255,252,248,0.95);border:1px solid var(--brd);border-radius:13px;padding:16px;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;top:0;right:0;width:50px;height:50px;border-radius:0 13px 0 50px;}
+.kpi.r::after{background:rgba(232,82,26,0.12);}
+.kpi.g::after{background:rgba(42,140,92,0.12);}
+.kpi.o::after{background:rgba(212,136,10,0.12);}
+.kpi.p::after{background:rgba(124,92,191,0.12);}
+.kpi.b::after{background:rgba(46,134,193,0.12);}
+.kpi-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.kpi-v{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.kpi-d{font-size:11px;}
+.up{color:var(--teal);}
+.dn{color:var(--accent2);}
+.warn{color:var(--gold);}
+
+/* TWO-COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* ALERTS */
+.alert-box{background:rgba(232,82,26,0.06);border:1px solid rgba(232,82,26,0.22);border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
+.alert-box.warn{background:rgba(212,136,10,0.07);border-color:rgba(212,136,10,0.25);}
+.alert-box.ok{background:rgba(42,140,92,0.07);border-color:rgba(42,140,92,0.25);}
+.alert-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.alert-box .alert-icon{background:rgba(232,82,26,0.12);}
+.alert-box.warn .alert-icon{background:rgba(212,136,10,0.12);}
+.alert-box.ok .alert-icon{background:rgba(42,140,92,0.12);}
+.alert-txt{font-size:13px;color:var(--t2);line-height:1.6;}
+.alert-txt strong{color:var(--t1);font-weight:600;}
+
+/* PROGRESS BARS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.prog-name{font-size:12px;color:var(--t2);width:90px;flex-shrink:0;}
+.prog-bg{flex:1;height:5px;background:rgba(44,36,24,0.10);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;}
+.prog-val{font-size:12px;color:var(--t1);font-weight:600;width:40px;text-align:right;}
+
+/* TRANSACTIONS */
+.txn-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(44,36,24,0.08);}
+.txn-row:last-child{border-bottom:none;}
+.txn-name{font-size:13px;color:var(--t1);}
+.txn-date{font-size:10px;color:var(--t3);margin-top:2px;}
+.txn-amt{font-size:13px;font-weight:600;margin-bottom:3px;}
+.amt-in{color:var(--teal);}
+.amt-out{color:var(--accent2);}
+.st{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:500;}
+.st-ok{background:rgba(82,183,136,0.12);color:var(--teal);}
+.st-pend{background:rgba(244,162,97,0.12);color:var(--gold);}
+.st-bad{background:rgba(230,57,70,0.12);color:var(--accent2);}
+
+/* WATERFALL BARS */
+.waterfall{display:flex;align-items:flex-end;gap:7px;height:130px;padding-top:10px;}
+.wf-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.wf-bar{width:100%;border-radius:3px 3px 0 0;}
+.wf-lbl{font-size:9px;color:var(--t3);margin-top:4px;}
+
+/* CHART LEGEND */
+.legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);}
+.leg-sq{width:10px;height:4px;border-radius:2px;}
+.leg-dash{width:14px;height:0;border-top:2px dashed;}
+
+/* PHASE LIST */
+.phase-list{display:flex;flex-direction:column;gap:8px;}
+.phase{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;background:rgba(232,82,26,0.05);border:1px solid rgba(232,82,26,0.12);}
+.phase-num{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.phase-txt{font-size:12px;color:var(--t2);line-height:1.4;}
+.phase-txt strong{color:var(--t1);font-weight:600;}
+.phase-status{margin-left:auto;font-size:12px;font-weight:600;white-space:nowrap;}
+
+/* RACI TABLE */
+.raci-table{width:100%;border-collapse:collapse;font-size:12px;}
+.raci-table th{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:8px 10px;border-bottom:1px solid rgba(44,36,24,0.12);text-align:left;}
+.raci-table td{padding:9px 10px;border-bottom:1px solid rgba(44,36,24,0.06);color:var(--t2);}
+.raci-table tr:last-child td{border-bottom:none;}
+.raci-table td:first-child{color:var(--t1);}
+.raci-r{color:#E8521A!important;font-weight:600;}
+.raci-a{color:var(--gold)!important;font-weight:600;}
+.raci-c{color:var(--blue)!important;font-weight:600;}
+.raci-i{color:var(--purple)!important;font-weight:600;}
+
+/* RISK TABLE */
+.risk-table{width:100%;border-collapse:collapse;font-size:12px;}
+.risk-table th{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:8px 10px;border-bottom:1px solid rgba(44,36,24,0.12);text-align:left;}
+.risk-table td{padding:9px 10px;border-bottom:1px solid rgba(44,36,24,0.06);color:var(--t2);}
+.risk-table tr:last-child td{border-bottom:none;}
+.risk-table td:first-child{color:var(--t1);max-width:200px;}
+
+/* BADGES */
+.badge{padding:2px 9px;border-radius:6px;font-size:10px;font-weight:500;display:inline-block;}
+.badge-r{background:rgba(232,82,26,0.10);color:var(--accent2);}
+.badge-g{background:rgba(82,183,136,0.12);color:var(--teal);}
+.badge-o{background:rgba(244,162,97,0.12);color:var(--gold);}
+
+/* CONFIDENCE BAR */
+.conf-bar-bg{height:6px;background:rgba(44,36,24,0.10);border-radius:3px;overflow:hidden;margin-top:6px;}
+.conf-bar-fill{height:100%;border-radius:3px;background:var(--accent);}
+
+/* STAKEHOLDER GRID */
+.stakeholder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.stakeholder-card{background:rgba(255,252,248,0.7);border:1px solid rgba(44,36,24,0.10);border-radius:10px;padding:14px;}
+.sh-title{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:4px;}
+.sh-role{font-size:11px;color:var(--t3);line-height:1.4;}
+.sh-badge{margin-bottom:8px;}
+
+/* EDT */
+.edt-tree{font-size:12px;color:var(--t2);}
+.edt-l1{color:var(--accent2);font-weight:600;font-size:13px;margin:10px 0 5px;}
+.edt-l2{padding-left:18px;border-left:2px solid rgba(232,82,26,0.25);margin-bottom:4px;padding-top:2px;padding-bottom:2px;}
+.edt-l3{padding-left:32px;color:var(--t3);margin-bottom:2px;}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:24px;}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:rgba(232,82,26,0.25);}
+.tl-item{position:relative;margin-bottom:18px;}
+.tl-dot{position:absolute;left:-21px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);}
+.tl-dot.done{background:var(--teal);}
+.tl-dot.pending{background:var(--t3);}
+.tl-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:3px;}
+.tl-sub{font-size:11px;color:var(--t3);}
+
+/* INVENTORY */
+.inv-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(44,36,24,0.08);}
+.inv-row:last-child{border-bottom:none;}
+.inv-name{font-size:12px;color:var(--t1);}
+.inv-sku{font-size:10px;color:var(--t3);}
+.inv-stock{font-size:12px;font-weight:600;}
+.stock-ok{color:var(--teal);}
+.stock-low{color:var(--gold);}
+.stock-out{color:var(--accent2);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(232,82,26,0.35);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <img src="data:image/jpeg;base64,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888888888999898998999888888888888888889s8888888888888888888888888888888888888888888888888888888888888888088888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888880888888888888888888888888888888888899888888888888888888888888888U8888888888888888888888888888888999998888888888888888888888888880888888888888888888888888888888999999988888888888888888888888888888888888888888888888888888888995+z39i9888888888888888888888888888888888888888888888888888888999v5StyoO9888888888888888888888888888888888888888888888888888889999+UTp7W98888888888888888888888889888888888888888888888888888/wDffff7yYTXffPPPPPPPPPPPPPPPPPPPPPPPNPPPPPPPPPPPPPPPPPPPPPPPPPP89ev/e+07wS9PffPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP92xsdlf4TFvePvffPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPbWelpQbICrffT3fffPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPf3ckszwHVvfffffffPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPa9ewgHwsHPfffffffPPPPPPPPPPPPPPPPPPPPPPFPPPPPPPPPPPPPPPPPPPPPPPPL9ZwgADDPffffffPPPPPPPPPPPPPPPPPPPPPPPPFPPPPPPPPPPPPPPPPPPPPPPPPa0/AQUfecPNPfffPPPPPPPPPPPPPPPPPPPPPPPPFPPPPPPPPPPPPPPPPPPPPPPPPb9PyxPXbLfYPfffPPPPPPPPPPPPPPPPPPPPPPPPFPPPPPP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" alt="CajaSabIA" style="height:40px;width:auto;object-fit:contain;border-radius:6px;"/>
+    </div>
+    <div class="tb-right">
+      <div class="live-dot"><span class="dot-pulse"></span>IA activa</div>
+      <span class="topbar-info">Pyme Retail · Antofagasta, Chile</span>
+      <div class="av">JM</div>
+    </div>
+  </div>
+
+  <div class="body-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-sec">
+        <div class="nav-lbl">Principal</div>
+        <div class="ni" onclick="navTo('dashboard',this)"><span class="ni-bar"></span>Dashboard</div>
+        <div class="ni active" onclick="navTo('caja',this)"><span class="ni-bar"></span>Flujo de Caja</div>
+        <div class="ni" onclick="navTo('pred',this)"><span class="ni-bar"></span>Predicción</div>
+      </div>
+      <div class="nav-sec">
+        <div class="nav-lbl">Gestión</div>
+        <div class="ni" onclick="navTo('inv',this)"><span class="ni-bar"></span>Inventario</div>
+        <div class="ni" onclick="navTo('reportes',this)"><span class="ni-bar"></span>Reportes</div>
+        <div class="ni" onclick="navTo('proyecto',this)"><span class="ni-bar"></span>Proyecto</div>
+      </div>
+      <div class="nav-sec">
+        <div class="nav-lbl">Sistema</div>
+        <div class="ni" onclick="navTo('csv',this)"><span class="ni-bar"></span>Cargar CSV</div>
+        <div class="ni" onclick="navTo('config',this)"><span class="ni-bar"></span>Configuración</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- TAB BAR -->
+      <div class="tab-bar">
+        <div class="tab" onclick="switchMainTab('dashboard',this)">Dashboard</div>
+        <div class="tab active" onclick="switchMainTab('caja',this)">Flujo de Caja</div>
+        <div class="tab" onclick="switchMainTab('pred',this)">Predicción</div>
+        <div class="tab" onclick="switchMainTab('inv',this)">Inventario</div>
+        <div class="tab" onclick="switchMainTab('reportes',this)">Reportes</div>
+        <div class="tab" onclick="switchMainTab('proyecto',this)">Proyecto</div>
+      </div>
+
+      <!-- ═══════════ DASHBOARD ═══════════ -->
+      <div class="pane" id="pane-dashboard">
+        <div class="page-hd">
+          <div class="page-title">Dashboard general</div>
+          <div class="page-sub">Resumen ejecutivo · Actualizado hoy 09:41 AM</div>
+        </div>
+        <div class="kpis-4">
+          <div class="kpi g"><div class="kpi-l">Ingresos del mes</div><div class="kpi-v">$4.82M</div><div class="kpi-d up">▲ 12.4% vs anterior</div></div>
+          <div class="kpi r"><div class="kpi-l">Egresos</div><div class="kpi-v">$2.97M</div><div class="kpi-d dn">▲ 3.1% vs anterior</div></div>
+          <div class="kpi g"><div class="kpi-l">Margen neto</div><div class="kpi-v">38.4%</div><div class="kpi-d up">▲ 5.2 pp</div></div>
+          <div class="kpi p"><div class="kpi-l">Proyección 30d</div><div class="kpi-v">$5.1M</div><div class="kpi-d up">Confianza 87%</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Flujo mensual</div><div class="chip">7 meses</div></div>
+            <div class="waterfall" id="dash-wf"></div>
+            <div class="legend">
+              <div class="leg-item"><div class="leg-sq" style="background:var(--teal);"></div>Ingresos</div>
+              <div class="leg-item"><div class="leg-sq" style="background:var(--accent);"></div>Egresos</div>
+              <div class="leg-item"><div class="leg-sq" style="background:var(--gold);"></div>Neto</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Distribución de egresos</div></div>
+            <div class="prog-row"><div class="prog-name">Inventario</div><div class="prog-bg"><div class="prog-fill" style="width:40%;background:var(--accent);"></div></div><div class="prog-val">40%</div></div>
+            <div class="prog-row"><div class="prog-name">Operación</div><div class="prog-bg"><div class="prog-fill" style="width:25%;background:var(--gold);"></div></div><div class="prog-val">25%</div></div>
+            <div class="prog-row"><div class="prog-name">Marketing</div><div class="prog-bg"><div class="prog-fill" style="width:15%;background:var(--purple);"></div></div><div class="prog-val">15%</div></div>
+            <div class="prog-row"><div class="prog-name">Logística</div><div class="prog-bg"><div class="prog-fill" style="width:13%;background:var(--blue);"></div></div><div class="prog-val">13%</div></div>
+            <div class="prog-row"><div class="prog-name">Otros</div><div class="prog-bg"><div class="prog-fill" style="width:7%;background:var(--t3);"></div></div><div class="prog-val">7%</div></div>
+          </div>
+        </div>
+        <div class="alert-box ok">
+          <div class="alert-icon">🤖</div>
+          <div class="alert-txt"><strong>Asistente CajaSabIA:</strong> Basado en tus últimos 6 meses, el modelo predice un <strong>incremento de +5.8%</strong> para mayo. Se detecta posible baja de liquidez en semana 3 — se recomienda ajustar pedido de inventario en un 15% o gestionar cobros por $420K antes del día 18.</div>
+        </div>
+      </div>
+
+      <!-- ═══════════ FLUJO DE CAJA ═══════════ -->
+      <div class="pane active" id="pane-caja">
+        <div class="page-hd">
+          <div class="page-title">Flujo de Caja</div>
+          <div class="page-sub">Análisis de ingresos, egresos y liquidez operacional</div>
+        </div>
+        <div class="kpis-4">
+          <div class="kpi g"><div class="kpi-l">Saldo actual</div><div class="kpi-v">$1.85M</div><div class="kpi-d up">▲ 8.2% este mes</div></div>
+          <div class="kpi g"><div class="kpi-l">Total ingresos</div><div class="kpi-v">$4.82M</div><div class="kpi-d up">▲ 12.4%</div></div>
+          <div class="kpi r"><div class="kpi-l">Total egresos</div><div class="kpi-v">$2.97M</div><div class="kpi-d dn">▲ 3.1%</div></div>
+          <div class="kpi o"><div class="kpi-l">Días de liquidez</div><div class="kpi-v">18 d</div><div class="kpi-d warn">⚠ Bajo umbral (20d)</div></div>
+        </div>
+        <div class="alert-box">
+          <div class="alert-icon">⚠</div>
+          <div class="alert-txt"><strong>Alerta de liquidez:</strong> Se proyecta una baja en semana 3 de mayo. Recomendación: ajustar pedido de inventario en un <strong>15%</strong> o gestionar cobros pendientes por <strong>$420K</strong> antes del día 18.</div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Flujo mensual — Ingresos vs Egresos vs Neto</div><div class="chip">Últimos 7 meses</div></div>
+          <div style="position:relative;width:100%;height:200px;">
+            <canvas id="cajaChart" role="img" aria-label="Gráfico de barras de flujo de caja mensual mostrando ingresos, egresos y neto de octubre a abril">Flujo de caja mensual con ingresos crecientes de $3.2M a $4.82M.</canvas>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-sq" style="background:#2A8C5C;"></div>Ingresos</div>
+            <div class="leg-item"><div class="leg-sq" style="background:#E8521A;"></div>Egresos</div>
+            <div class="leg-item"><div class="leg-sq" style="background:#D4880A;"></div>Neto</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Distribución de egresos</div></div>
+            <div class="prog-row"><div class="prog-name">Inventario</div><div class="prog-bg"><div class="prog-fill" style="width:40%;background:var(--accent);"></div></div><div class="prog-val">40%</div></div>
+            <div class="prog-row"><div class="prog-name">Operación</div><div class="prog-bg"><div class="prog-fill" style="width:25%;background:var(--gold);"></div></div><div class="prog-val">25%</div></div>
+            <div class="prog-row"><div class="prog-name">Marketing</div><div class="prog-bg"><div class="prog-fill" style="width:15%;background:var(--purple);"></div></div><div class="prog-val">15%</div></div>
+            <div class="prog-row"><div class="prog-name">Logística</div><div class="prog-bg"><div class="prog-fill" style="width:13%;background:var(--blue);"></div></div><div class="prog-val">13%</div></div>
+            <div class="prog-row"><div class="prog-name">Otros</div><div class="prog-bg"><div class="prog-fill" style="width:7%;background:var(--t3);"></div></div><div class="prog-val">7%</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Últimas transacciones</div></div>
+            <div class="txn-row">
+              <div><div class="txn-name">Proveedor ABC</div><div class="txn-date">17 abr 2026</div></div>
+              <div style="text-align:right;"><div class="txn-amt amt-out">-$240K</div><span class="st st-ok">Pagado</span></div>
+            </div>
+            <div class="txn-row">
+              <div><div class="txn-name">Venta Online</div><div class="txn-date">16 abr 2026</div></div>
+              <div style="text-align:right;"><div class="txn-amt amt-in">+$580K</div><span class="st st-ok">Cobrado</span></div>
+            </div>
+            <div class="txn-row">
+              <div><div class="txn-name">Arriendo local</div><div class="txn-date">15 abr 2026</div></div>
+              <div style="text-align:right;"><div class="txn-amt amt-out">-$180K</div><span class="st st-pend">Pendiente</span></div>
+            </div>
+            <div class="txn-row">
+              <div><div class="txn-name">Stock insumos</div><div class="txn-date">14 abr 2026</div></div>
+              <div style="text-align:right;"><div class="txn-amt amt-out">-$95K</div><span class="st st-bad">Vencido</span></div>
+            </div>
+            <div class="txn-row">
+              <div><div class="txn-name">Venta presencial</div><div class="txn-date">13 abr 2026</div></div>
+              <div style="text-align:right;"><div class="txn-amt amt-in">+$310K</div><span class="st st-ok">Cobrado</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ PREDICCIÓN ═══════════ -->
+      <div class="pane" id="pane-pred">
+        <div class="page-hd">
+          <div class="page-title">Predicción de Ventas</div>
+          <div class="page-sub">Modelo de regresión lineal · Entrenado con datos históricos reales</div>
+        </div>
+        <div class="kpis-3">
+          <div class="kpi r">
+            <div class="kpi-l">Proyección próx. 30d</div>
+            <div class="kpi-v">$5.1M</div>
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:87%;"></div></div>
+            <div style="font-size:10px;color:var(--t3);margin-top:5px;">Confianza del modelo: 87%</div>
+          </div>
+          <div class="kpi g">
+            <div class="kpi-l">Crecimiento estimado</div>
+            <div class="kpi-v" style="color:var(--teal);">+5.8%</div>
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:72%;background:var(--teal);"></div></div>
+            <div style="font-size:10px;color:var(--t3);margin-top:5px;">Confianza: 72%</div>
+          </div>
+          <div class="kpi o">
+            <div class="kpi-l">Riesgo de liquidez</div>
+            <div class="kpi-v" style="color:var(--gold);">Semana 3</div>
+            <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:60%;background:var(--gold);"></div></div>
+            <div style="font-size:10px;color:var(--t3);margin-top:5px;">Probabilidad: 60%</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Proyección de ventas — próximos 30 días</div><div class="chip chip-g">Modelo ML activo</div></div>
+          <div style="position:relative;width:100%;height:220px;">
+            <canvas id="predChart" role="img" aria-label="Gráfico de línea mostrando ventas históricas y proyección de IA para los próximos 30 días">Proyección de ventas con crecimiento estimado hacia $5.1M.</canvas>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-sq" style="background:#E8521A;"></div>Histórico real</div>
+            <div class="leg-item"><div class="leg-dash" style="border-color:#D4880A;"></div>Proyección IA</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Proyección por categoría</div></div>
+            <div class="prog-row"><div class="prog-name">Electrónica</div><div class="prog-bg"><div class="prog-fill" style="width:88%;background:var(--accent);"></div></div><div class="prog-val up">+8.8%</div></div>
+            <div class="prog-row"><div class="prog-name">Ropa</div><div class="prog-bg"><div class="prog-fill" style="width:62%;background:var(--gold);"></div></div><div class="prog-val up">+6.2%</div></div>
+            <div class="prog-row"><div class="prog-name">Alimentos</div><div class="prog-bg"><div class="prog-fill" style="width:45%;background:var(--teal);"></div></div><div class="prog-val up">+4.5%</div></div>
+            <div class="prog-row"><div class="prog-name">Hogar</div><div class="prog-bg"><div class="prog-fill" style="width:28%;background:var(--purple);"></div></div><div class="prog-val up">+2.8%</div></div>
+            <div class="prog-row"><div class="prog-name">Otros</div><div class="prog-bg"><div class="prog-fill" style="width:18%;background:var(--blue);"></div></div><div class="prog-val up">+1.8%</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Hitos del modelo predictivo</div></div>
+            <div class="phase-list">
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">1</div><div class="phase-txt"><strong>ETL completado</strong> — 8 meses de datos cargados y procesados</div><div class="phase-status" style="color:var(--teal);">✓ Listo</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">2</div><div class="phase-txt"><strong>Regresión lineal</strong> entrenada y validada internamente</div><div class="phase-status" style="color:var(--teal);">✓ Listo</div></div>
+              <div class="phase"><div class="phase-num">3</div><div class="phase-txt"><strong>Validación con Pyme piloto</strong> (2 empresas) en curso</div><div class="phase-status" style="color:var(--gold);">70%</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--t3);">4</div><div class="phase-txt"><strong>Ajuste de hiperparámetros</strong> y mejora del modelo</div><div class="phase-status" style="color:var(--t3);">Pendiente</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-box warn">
+          <div class="alert-icon">💡</div>
+          <div class="alert-txt"><strong>Recomendación del modelo:</strong> Dado el crecimiento proyectado en electrónica (+8.8%), se sugiere incrementar el stock de esa categoría un <strong>10-12%</strong> antes del 1 de mayo para evitar quiebres de stock durante el peak estimado en la semana 2.</div>
+        </div>
+      </div>
+
+      <!-- ═══════════ INVENTARIO ═══════════ -->
+      <div class="pane" id="pane-inv">
+        <div class="page-hd">
+          <div class="page-title">Gestión de inventario</div>
+          <div class="page-sub">Stock actual · Alertas de reposición</div>
+        </div>
+        <div class="kpis-4">
+          <div class="kpi g"><div class="kpi-l">SKUs activos</div><div class="kpi-v">248</div><div class="kpi-d up">+12 este mes</div></div>
+          <div class="kpi o"><div class="kpi-l">Stock bajo umbral</div><div class="kpi-v">14</div><div class="kpi-d warn">Requieren reposición</div></div>
+          <div class="kpi r"><div class="kpi-l">Sin stock</div><div class="kpi-v">3</div><div class="kpi-d dn">Quiebre de stock</div></div>
+          <div class="kpi b"><div class="kpi-l">Valor inventario</div><div class="kpi-v">$2.4M</div><div class="kpi-d up">▲ 5.1%</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Productos con alerta de stock</div><div class="chip">Prioridad alta</div></div>
+            <div class="inv-row"><div><div class="inv-name">Notebook HP Pavilion 15</div><div class="inv-sku">SKU-E001</div></div><div class="inv-stock stock-low">Bajo (4 uds)</div></div>
+            <div class="inv-row"><div><div class="inv-name">iPhone 15 128GB</div><div class="inv-sku">SKU-E002</div></div><div class="inv-stock stock-out">Sin stock</div></div>
+            <div class="inv-row"><div><div class="inv-name">Smart TV Samsung 55"</div><div class="inv-sku">SKU-E003</div></div><div class="inv-stock stock-low">Bajo (2 uds)</div></div>
+            <div class="inv-row"><div><div class="inv-name">Auriculares Sony WH-1000</div><div class="inv-sku">SKU-E008</div></div><div class="inv-stock stock-out">Sin stock</div></div>
+            <div class="inv-row"><div><div class="inv-name">Cafetera Nespresso Vertuo</div><div class="inv-sku">SKU-H012</div></div><div class="inv-stock stock-low">Bajo (3 uds)</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Rotación por categoría</div><div class="chip chip-b">Últimos 30d</div></div>
+            <div class="prog-row"><div class="prog-name">Electrónica</div><div class="prog-bg"><div class="prog-fill" style="width:82%;background:var(--accent);"></div></div><div class="prog-val">82%</div></div>
+            <div class="prog-row"><div class="prog-name">Ropa</div><div class="prog-bg"><div class="prog-fill" style="width:65%;background:var(--gold);"></div></div><div class="prog-val">65%</div></div>
+            <div class="prog-row"><div class="prog-name">Alimentos</div><div class="prog-bg"><div class="prog-fill" style="width:57%;background:var(--teal);"></div></div><div class="prog-val">57%</div></div>
+            <div class="prog-row"><div class="prog-name">Hogar</div><div class="prog-bg"><div class="prog-fill" style="width:44%;background:var(--purple);"></div></div><div class="prog-val">44%</div></div>
+            <div class="prog-row"><div class="prog-name">Otros</div><div class="prog-bg"><div class="prog-fill" style="width:30%;background:var(--t3);"></div></div><div class="prog-val">30%</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Proyección de reposición sugerida por IA</div><div class="chip chip-g">Recomendación modelo</div></div>
+          <div style="position:relative;width:100%;height:180px;">
+            <canvas id="invChart" role="img" aria-label="Gráfico de barras horizontales mostrando reposición sugerida por categoría en unidades">Reposición sugerida: Electrónica 120, Ropa 85, Alimentos 60, Hogar 40, Otros 20.</canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ REPORTES ═══════════ -->
+      <div class="pane" id="pane-reportes">
+        <div class="page-hd">
+          <div class="page-title">Reportes financieros</div>
+          <div class="page-sub">Indicadores clave de desempeño · KPIs operacionales</div>
+        </div>
+        <div class="kpis-4">
+          <div class="kpi g"><div class="kpi-l">ROI mensual</div><div class="kpi-v">24.3%</div><div class="kpi-d up">▲ 2.1 pp</div></div>
+          <div class="kpi b"><div class="kpi-l">Ticket promedio</div><div class="kpi-v">$48K</div><div class="kpi-d up">▲ 6.5%</div></div>
+          <div class="kpi p"><div class="kpi-l">Transacciones</div><div class="kpi-v">1,204</div><div class="kpi-d up">▲ 9.8%</div></div>
+          <div class="kpi o"><div class="kpi-l">Clientes nuevos</div><div class="kpi-v">87</div><div class="kpi-d up">▲ 15.3%</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Evolución mensual de ingresos y margen</div><div class="chip">12 meses</div></div>
+          <div style="position:relative;width:100%;height:220px;">
+            <canvas id="repChart" role="img" aria-label="Gráfico de líneas mostrando evolución de ingresos y margen neto en los últimos 12 meses">Ingresos creciendo de $2.8M a $4.82M en 12 meses con margen estable entre 32% y 38%.</canvas>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-sq" style="background:#E8521A;"></div>Ingresos (M$)</div>
+            <div class="leg-item"><div class="leg-sq" style="background:#D4880A;"></div>Margen neto (%)</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Top 5 productos más vendidos</div></div>
+            <div class="inv-row"><div><div class="inv-name">Notebook HP Pavilion 15</div><div class="inv-sku">Electrónica</div></div><div class="inv-stock stock-ok">148 uds</div></div>
+            <div class="inv-row"><div><div class="inv-name">Polera básica premium</div><div class="inv-sku">Ropa</div></div><div class="inv-stock stock-ok">210 uds</div></div>
+            <div class="inv-row"><div><div class="inv-name">Smart TV Samsung 55"</div><div class="inv-sku">Electrónica</div></div><div class="inv-stock stock-ok">92 uds</div></div>
+            <div class="inv-row"><div><div class="inv-name">Aceite de oliva premium</div><div class="inv-sku">Alimentos</div></div><div class="inv-stock stock-ok">340 uds</div></div>
+            <div class="inv-row"><div><div class="inv-name">Cafetera Nespresso</div><div class="inv-sku">Hogar</div></div><div class="inv-stock stock-ok">67 uds</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Resumen de entregables</div></div>
+            <div class="phase-list">
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">E1</div><div class="phase-txt"><strong>Definición del proyecto</strong> completada</div><div class="phase-status" style="color:var(--teal);">✓</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">E2</div><div class="phase-txt"><strong>Arquitectura UML</strong> aprobada</div><div class="phase-status" style="color:var(--teal);">✓</div></div>
+              <div class="phase"><div class="phase-num">E3</div><div class="phase-txt"><strong>Prototipo funcional MVP</strong> en desarrollo</div><div class="phase-status" style="color:var(--gold);">75%</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--t3);">E4</div><div class="phase-txt"><strong>Documentación técnica</strong></div><div class="phase-status" style="color:var(--t3);">Pendiente</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--t3);">E5</div><div class="phase-txt"><strong>Informe de validación Pymes</strong></div><div class="phase-status" style="color:var(--t3);">Pendiente</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ PROYECTO ═══════════ -->
+      <div class="pane" id="pane-proyecto">
+        <div class="page-hd">
+          <div class="page-title">Definición del proyecto</div>
+          <div class="page-sub">CajaSabIA · Gestión de Proyectos · INACAP · 7mo semestre · 2026</div>
+        </div>
+        <div class="two-col" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Equipo de trabajo</div><div class="chip">3 integrantes</div></div>
+            <div class="txn-row"><div><div class="txn-name">Jamell Maluenda Maluenda</div><div class="txn-date">RUT 21.516.384-9</div></div><span class="badge badge-r">Director</span></div>
+            <div class="txn-row"><div><div class="txn-name">Fernando José Castillo</div><div class="txn-date">Integrante</div></div><span class="badge badge-o">Desarrollo</span></div>
+            <div class="txn-row"><div><div class="txn-name">Cristofer Antonio Álvarez</div><div class="txn-date">RUT 21.726.773-0</div></div><span class="badge badge-o">Desarrollo</span></div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+              <div class="txn-name" style="font-size:11px;color:var(--t3);">Docente responsable</div>
+              <div style="font-size:12px;color:var(--t1);margin-top:3px;">Peter Jhostin Valdivia Calderón</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Estimaciones ROM</div><div class="chip chip-b">12 semanas</div></div>
+            <div class="prog-row"><div class="prog-name">Iniciación</div><div class="prog-bg"><div class="prog-fill" style="width:100%;background:var(--teal);"></div></div><div class="prog-val" style="color:var(--teal);">2 sem</div></div>
+            <div class="prog-row"><div class="prog-name">Diseño</div><div class="prog-bg"><div class="prog-fill" style="width:100%;background:var(--teal);"></div></div><div class="prog-val" style="color:var(--teal);">2 sem</div></div>
+            <div class="prog-row"><div class="prog-name">Desarrollo</div><div class="prog-bg"><div class="prog-fill" style="width:65%;background:var(--gold);"></div></div><div class="prog-val" style="color:var(--gold);">5 sem</div></div>
+            <div class="prog-row"><div class="prog-name">Validación</div><div class="prog-bg"><div class="prog-fill" style="width:20%;background:var(--t3);"></div></div><div class="prog-val" style="color:var(--t3);">3 sem</div></div>
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px;color:var(--t3);">
+              Esfuerzo total estimado: <strong style="color:var(--t1);">360 horas/hombre</strong> · Stack: Python + React + PostgreSQL
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Roadmap del proyecto</div></div>
+          <div class="timeline">
+            <div class="tl-item"><div class="tl-dot done"></div><div class="tl-title">Fase 1 — Iniciación y Planificación</div><div class="tl-sub">Semanas 1-2 · Constitución del equipo, definición de roles, validación de visión, selección de stack tecnológico</div></div>
+            <div class="tl-item"><div class="tl-dot done"></div><div class="tl-title">Fase 2 — Diseño y Arquitectura</div><div class="tl-sub">Semanas 3-4 · Modelado BD, diagramas UML, selección del algoritmo de predicción · Hito: aprobación técnica</div></div>
+            <div class="tl-item"><div class="tl-dot"></div><div class="tl-title">Fase 3 — Desarrollo e Integración</div><div class="tl-sub">Semanas 5-9 · Módulos Dashboard → Motor Predictivo → Asistente de Inventario · Sprints semanales</div></div>
+            <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-title">Fase 4 — Validación, Cierre y Presentación</div><div class="tl-sub">Semanas 10-12 · Pruebas con Pymes piloto, informe de validación, presentación ante comité evaluador</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Riesgos del proyecto</div></div>
+          <table class="risk-table">
+            <tr><th>Riesgo</th><th>Probabilidad</th><th>Impacto</th><th>Mitigación</th></tr>
+            <tr><td>Datos insuficientes de Pymes piloto</td><td><span class="badge badge-o">Media</span></td><td><span class="badge badge-r">Alto</span></td><td style="color:var(--t2);">Usar dataset Kaggle Superstore como proxy</td></tr>
+            <tr><td>Complejidad subestimada del algoritmo</td><td><span class="badge badge-o">Media</span></td><td><span class="badge badge-r">Alto</span></td><td style="color:var(--t2);">Comenzar con regresión lineal simple</td></tr>
+            <tr><td>Baja participación de Pymes en validación</td><td><span class="badge badge-g">Baja</span></td><td><span class="badge badge-o">Medio</span></td><td style="color:var(--t2);">Identificar 5 contactos potenciales desde sem 1</td></tr>
+            <tr><td>Conflicto de disponibilidad del equipo</td><td><span class="badge badge-o">Media</span></td><td><span class="badge badge-o">Medio</span></td><td style="color:var(--t2);">Calendario semanal + tablero Kanban</td></tr>
+            <tr><td>Cambios en requisitos académicos</td><td><span class="badge badge-g">Baja</span></td><td><span class="badge badge-r">Alto</span></td><td style="color:var(--t2);">Comunicación continua y acuerdos escritos</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Matriz RACI</div><div class="chip chip-p">Organización del proyecto</div></div>
+          <div style="overflow-x:auto;">
+            <table class="raci-table">
+              <tr><th>Actividad</th><th>Responsable (R)</th><th>Aprobador (A)</th><th>Consultado (C)</th><th>Informado (I)</th></tr>
+              <tr><td>Definición del proyecto</td><td class="raci-r">Equipo dev</td><td class="raci-a">Docente</td><td class="raci-c">Pymes piloto</td><td class="raci-i">INACAP</td></tr>
+              <tr><td>Diseño de arquitectura</td><td class="raci-r">Equipo dev</td><td class="raci-a">Docente</td><td class="raci-c">—</td><td class="raci-i">—</td></tr>
+              <tr><td>Desarrollo MVP</td><td class="raci-r">Equipo dev</td><td class="raci-a">—</td><td class="raci-c">—</td><td class="raci-i">Docente</td></tr>
+              <tr><td>Modelo predictivo</td><td class="raci-r">Equipo dev</td><td class="raci-a">Docente</td><td class="raci-c">—</td><td class="raci-i">—</td></tr>
+              <tr><td>Validación con Pymes</td><td class="raci-r">Equipo dev</td><td class="raci-a">Docente</td><td class="raci-c">Pymes piloto</td><td class="raci-i">INACAP</td></tr>
+              <tr><td>Presentación final</td><td class="raci-r">Equipo dev</td><td class="raci-a">Docente</td><td class="raci-c">—</td><td class="raci-i">INACAP</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Stakeholders</div></div>
+          <div class="stakeholder-grid">
+            <div class="stakeholder-card"><div class="sh-badge"><span class="badge badge-r">Interno</span></div><div class="sh-title">Equipo de desarrollo</div><div class="sh-role">Diseña, desarrolla e implementa la plataforma CajaSabIA</div></div>
+            <div class="stakeholder-card"><div class="sh-badge"><span class="badge badge-r">Interno</span></div><div class="sh-title">Docente responsable</div><div class="sh-role">Supervisa el avance y valida entregables académicos</div></div>
+            <div class="stakeholder-card"><div class="sh-badge"><span class="badge badge-r">Interno</span></div><div class="sh-title">INACAP</div><div class="sh-role">Institución evaluadora; provee infraestructura y criterios</div></div>
+            <div class="stakeholder-card"><div class="sh-badge"><span class="badge badge-o">Externo</span></div><div class="sh-title">Pymes piloto</div><div class="sh-role">Usuarios principales; proveen datos y retroalimentación</div></div>
+            <div class="stakeholder-card"><div class="sh-badge"><span class="badge badge-o">Externo</span></div><div class="sh-title">Emprendedores</div><div class="sh-role">Usuarios potenciales interesados en gestión financiera BI</div></div>
+            <div class="stakeholder-card"><div class="sh-badge"><span class="badge badge-g">Comunidad</span></div><div class="sh-title">Comunidad empresarial</div><div class="sh-role">Se beneficia indirectamente de mejores decisiones de negocio</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ CARGAR CSV ═══════════ -->
+      <div class="pane" id="pane-csv">
+        <div class="page-hd">
+          <div class="page-title">Cargar datos CSV</div>
+          <div class="page-sub">Importa tu historial de ventas para alimentar el modelo predictivo</div>
+        </div>
+        <div class="card" style="text-align:center;padding:40px 20px;">
+          <div style="width:64px;height:64px;border-radius:16px;background:rgba(232,82,26,0.07);border:2px dashed rgba(232,82,26,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;">📁</div>
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:var(--t1);margin-bottom:8px;">Arrastra tu archivo CSV aquí</div>
+          <div style="font-size:13px;color:var(--t3);margin-bottom:20px;">O haz clic para seleccionar un archivo · Formatos: .csv, .xlsx</div>
+          <button onclick="alert('Función disponible en el MVP final')" style="background:var(--accent);color:#fff;border:none;padding:10px 28px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Seleccionar archivo</button>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Formato esperado del CSV</div><div class="chip">Plantilla</div></div>
+            <div style="background:rgba(240,235,220,0.9);border-radius:8px;padding:14px;font-size:11px;color:#2A6B45;font-family:monospace;line-height:1.8;border:1px solid rgba(42,140,92,0.20);">
+              fecha,producto,categoria,cantidad,precio_unit,total<br>
+              2026-01-15,Notebook HP,Electronica,2,450000,900000<br>
+              2026-01-16,Polera básica,Ropa,5,12000,60000<br>
+              2026-01-17,Aceite oliva,Alimentos,10,8500,85000
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Supuestos del sistema</div></div>
+            <div class="phase-list">
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">S1</div><div class="phase-txt">Mínimo <strong>6 meses</strong> de historial de ventas requerido</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">S2</div><div class="phase-txt">Datos en formato digital (<strong>Excel o CSV</strong>)</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">S6</div><div class="phase-txt">Datos <strong>verídicos y consistentes</strong> para el modelo</div></div>
+              <div class="phase"><div class="phase-num" style="background:var(--teal);">S9</div><div class="phase-txt">Usuario con <strong>conocimientos básicos</strong> de navegador web</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ CONFIGURACIÓN ═══════════ -->
+      <div class="pane" id="pane-config">
+        <div class="page-hd">
+          <div class="page-title">Configuración</div>
+          <div class="page-sub">Parámetros del sistema y preferencias de usuario</div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Información de la empresa</div></div>
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Nombre de la Pyme</div><div style="background:rgba(240,235,227,0.8);border:1px solid rgba(44,36,24,0.12);border-radius:7px;padding:8px 12px;color:var(--t1);">Mi Empresa Retail SpA</div></div>
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Rubro</div><div style="background:rgba(240,235,227,0.8);border:1px solid rgba(44,36,24,0.12);border-radius:7px;padding:8px 12px;color:var(--t1);">Retail / Comercio</div></div>
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Ciudad</div><div style="background:rgba(240,235,227,0.8);border:1px solid rgba(44,36,24,0.12);border-radius:7px;padding:8px 12px;color:var(--t1);">Antofagasta, Región II</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Parámetros del modelo IA</div><div class="chip chip-g">ML Config</div></div>
+            <div style="font-size:13px;display:flex;flex-direction:column;gap:12px;">
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Algoritmo</div><div style="color:var(--teal);">Regresión Lineal (OBJ-02)</div></div>
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Ventana de predicción</div><div style="color:var(--t1);">30 días hacia adelante</div></div>
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Umbral de liquidez</div><div style="color:var(--gold);">20 días (configurable)</div></div>
+              <div><div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Confianza mínima aceptada</div><div style="color:var(--t1);">70%</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-box ok" style="margin-top:4px;">
+          <div class="alert-icon">ℹ</div>
+          <div class="alert-txt"><strong>Versión MVP 0.1.0</strong> · Stack: Python + React + PostgreSQL · Proyecto académico INACAP · Semestre 1 · 2026 · Entrega: 16-04-2026</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const MONTHS7 = ['Oct','Nov','Dic','Ene','Feb','Mar','Abr'];
+const INC7    = [3.2,3.8,4.1,3.6,4.4,4.6,4.82];
+const EXP7    = [2.1,2.4,2.6,2.2,2.7,2.8,2.97];
+const NET7    = INC7.map((v,i) => parseFloat((v - EXP7[i]).toFixed(2)));
+
+const chartInstances = {};
+
+function buildWaterfall(id) {
+  const el = document.getElementById(id);
+  if (!el || el.children.length) return;
+  const maxV = Math.max(...INC7);
+  MONTHS7.forEach((m,i) => {
+    const c = document.createElement('div'); c.className='wf-col';
+    const bI = document.createElement('div'); bI.className='wf-bar'; bI.style.cssText='height:'+Math.round((INC7[i]/maxV)*110)+'px;background:#2A8C5C;';
+    const bE = document.createElement('div'); bE.className='wf-bar'; bE.style.cssText='height:'+Math.round((EXP7[i]/maxV)*110)+'px;background:#E8521A;margin-top:2px;';
+    const bN = document.createElement('div'); bN.className='wf-bar'; bN.style.cssText='height:'+Math.round((NET7[i]/maxV)*110)+'px;background:#D4880A;margin-top:2px;';
+    const lbl = document.createElement('div'); lbl.className='wf-lbl'; lbl.textContent=m;
+    c.append(bI,bE,bN,lbl); el.appendChild(c);
+  });
+}
+
+function buildCajaChart() {
+  if (chartInstances.caja) return;
+  chartInstances.caja = new Chart(document.getElementById('cajaChart'), {
+    type:'bar',
+    data:{
+      labels: MONTHS7,
+      datasets:[
+        {label:'Ingresos',data:INC7,backgroundColor:'rgba(42,140,92,0.75)',borderRadius:4},
+        {label:'Egresos',data:EXP7,backgroundColor:'rgba(232,82,26,0.75)',borderRadius:4},
+        {label:'Neto',data:NET7,backgroundColor:'rgba(212,136,10,0.75)',borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9A8570',font:{size:11}},grid:{color:'rgba(44,36,24,0.08)'}},
+        y:{ticks:{color:'#9A8570',font:{size:11},callback:v=>'$'+v.toFixed(1)+'M'},grid:{color:'rgba(44,36,24,0.08)'}}
+      }
+    }
+  });
+}
+
+function buildPredChart() {
+  if (chartInstances.pred) return;
+  const hist = MONTHS7.map((m,i) => ({x:m,y:INC7[i]}));
+  const futLabels = ['May 1','May 8','May 15','May 22','May 30'];
+  const futData   = [4.82,4.95,5.02,5.08,5.1];
+  const allLabels = [...MONTHS7,...futLabels];
+  const hData = [...INC7, null,null,null,null,null];
+  const pData = [null,null,null,null,null,null,4.82,...futData.slice(1)];
+  chartInstances.pred = new Chart(document.getElementById('predChart'), {
+    type:'line',
+    data:{
+      labels:allLabels,
+      datasets:[
+        {label:'Histórico real',data:hData,borderColor:'#E8521A',backgroundColor:'rgba(232,82,26,0.07)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#E8521A',fill:true,tension:0.35,spanGaps:false},
+        {label:'Proyección IA',data:pData,borderColor:'#D4880A',backgroundColor:'rgba(212,136,10,0.05)',borderWidth:2.5,borderDash:[6,4],pointRadius:3,pointBackgroundColor:'#D4880A',fill:true,tension:0.35,spanGaps:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9A8570',font:{size:10},autoSkip:false,maxRotation:30},grid:{color:'rgba(44,36,24,0.08)'}},
+        y:{ticks:{color:'#9A8570',font:{size:10},callback:v=>'$'+v.toFixed(1)+'M'},grid:{color:'rgba(44,36,24,0.08)'}}
+      }
+    }
+  });
+}
+
+function buildInvChart() {
+  if (chartInstances.inv) return;
+  chartInstances.inv = new Chart(document.getElementById('invChart'), {
+    type:'bar',
+    data:{
+      labels:['Electrónica','Ropa','Alimentos','Hogar','Otros'],
+      datasets:[{
+        label:'Unidades sugeridas',
+        data:[120,85,60,40,20],
+        backgroundColor:['rgba(232,82,26,0.75)','rgba(212,136,10,0.75)','rgba(42,140,92,0.75)','rgba(124,92,191,0.75)','rgba(46,134,193,0.75)'],
+        borderRadius:5
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9A8570',font:{size:11}},grid:{color:'rgba(44,36,24,0.08)'}},
+        y:{ticks:{color:'#5C4A35',font:{size:12}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function buildRepChart() {
+  if (chartInstances.rep) return;
+  const months12 = ['May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr'];
+  const ingData  = [2.8,2.95,3.1,3.2,3.0,3.2,3.8,4.1,3.6,4.4,4.6,4.82];
+  const marData  = [32,33,34,33,32,34,35,35,33,36,37,38.4];
+  chartInstances.rep = new Chart(document.getElementById('repChart'), {
+    type:'line',
+    data:{
+      labels:months12,
+      datasets:[
+        {label:'Ingresos (M$)',data:ingData,borderColor:'#E8521A',backgroundColor:'rgba(232,82,26,0.06)',borderWidth:2.5,pointRadius:3,fill:true,tension:0.4,yAxisID:'y'},
+        {label:'Margen (%)',data:marData,borderColor:'#F4A261',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3,tension:0.4,yAxisID:'y2'}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9A8570',font:{size:10}},grid:{color:'rgba(44,36,24,0.08)'}},
+        y:{ticks:{color:'#E8521A',font:{size:10},callback:v=>'$'+v+'M'},grid:{color:'rgba(44,36,24,0.08)'}},
+        y2:{position:'right',ticks:{color:'#D4880A',font:{size:10},callback:v=>v+'%'},grid:{display:false}}
+      }
+    }
+  });
+}
+
+const PANE_MAP = {
+  dashboard:'dashboard', caja:'caja', pred:'pred',
+  inv:'inv', reportes:'reportes', proyecto:'proyecto',
+  csv:'csv', config:'config'
+};
+
+function switchMainTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const pane = document.getElementById('pane-'+id);
+  if (pane) pane.classList.add('active');
+  if (id==='dashboard') buildWaterfall('dash-wf');
+  if (id==='caja') { buildWaterfall('dash-wf'); buildCajaChart(); }
+  if (id==='pred') buildPredChart();
+  if (id==='inv') buildInvChart();
+  if (id==='reportes') buildRepChart();
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const niList = document.querySelectorAll('.ni');
+  const niMap = {dashboard:0,caja:1,pred:2,inv:3,reportes:4,proyecto:5,csv:6,config:7};
+  if (niMap[id]!==undefined && niList[niMap[id]]) niList[niMap[id]].classList.add('active');
+}
+
+function navTo(id, el) {
+  const tabMap = {dashboard:0,caja:1,pred:2,inv:3,reportes:4,proyecto:5,csv:6,config:7};
+  const tabs = document.querySelectorAll('.tab');
+  if (tabMap[id]!==undefined && tabs[tabMap[id]]) {
+    switchMainTab(id, tabs[tabMap[id]]);
+  } else {
+    switchMainTab(id, null);
+  }
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+buildWaterfall('dash-wf');
+buildCajaChart();
+</script>
+</body>
+</html>
